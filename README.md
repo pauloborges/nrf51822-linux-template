@@ -62,10 +62,14 @@ Specify the variant of the SoC. Possible values are `xxaa` (256 kb) and `xxab`
 
 Specify the board. Possible values are defined in `boards.h`.
 
-#### SOFTDEVICE
+#### USE_SOFTDEVICE
 
 Specify if the Soft Device is going to be used or not. Possible values are
 `s110` and `blank`.
+
+#### NRF51_SOFTDEVICE
+
+Path to the `hex` file containing the softdevice.
 
 #### PROJECT_TARGET
 
@@ -85,10 +89,8 @@ Specify the name of the build target.
 
 The `Makefile` contains the following rules:
 
-`make` will build the firmware and put it inside `build` directory.
-
-`make clean` will erase the `build` directory.
-
-`make erase` will erase the firmware inside nRF51.
-
-`make install` or `make upload` will flash the firmware inside nRF51.
+* `make` will build the firmware and put it inside `build` directory.
+*`make clean` will erase the `build` directory.
+* `make erase` will erase the firmware inside nRF51.
+* `make install` or `make upload` will flash the firmware inside nRF51.
+* `make softdevice` will flash the softdevice inside nRF51 (it will first erase the flash).

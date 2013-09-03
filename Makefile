@@ -1,8 +1,6 @@
 # Include project specific Makefile
 -include Makefile.project
 
-export JLINK_PATH
-
 # Device
 DEVICE_FAMILY	= NRF51
 CPU				= cortex-m0
@@ -27,6 +25,8 @@ SDK_TEMPLATE_PATH	= $(NRF51_SDK_PATH)/Nordic/nrf51822/Source/templates
 CC			= arm-none-eabi-gcc
 OBJCOPY		= arm-none-eabi-objcopy
 PROGRAMMER	= python segger.py
+
+
 
 # Include paths
 INCLUDE_PATHS	= $(SDK_INCLUDE_PATH) $(SDK_INCLUDE_PATH)/gcc $(PROJECT_INCLUDE_PATHS)
@@ -66,14 +66,20 @@ ASM_OBJECT_FILES	= $(addprefix $(BUILD_PATH)/, $(ASM_SOURCE_FILES:.s=.o))
 vpath %.c $(C_SOURCE_PATHS)
 vpath %.s $(ASM_SOURCE_PATHS)
 
+# Softdevice
+SOFTDEVICE = $(BUILD_PATH)/softdevice_uicr.bin $(BUILD_PATH)/softdevice_main.bin
+
+export JLINK_PATH
+export USE_SOFTDEVICE
+
 # Rules
 all: $(BUILD_PATH)/$(PROJECT_TARGET).bin $(BUILD_PATH)/$(PROJECT_TARGET).hex
 
 $(BUILD_PATH)/$(PROJECT_TARGET).hex: $(BUILD_PATH)/$(PROJECT_TARGET).out
-	$(OBJCOPY) -O ihex $(BUILD_PATH)/$(PROJECT_TARGET).out $(BUILD_PATH)/$(PROJECT_TARGET).hex
+	$(OBJCOPY) -Oihex $(BUILD_PATH)/$(PROJECT_TARGET).out $(BUILD_PATH)/$(PROJECT_TARGET).hex
 
 $(BUILD_PATH)/$(PROJECT_TARGET).bin: $(BUILD_PATH)/$(PROJECT_TARGET).out
-	$(OBJCOPY) -O binary $(BUILD_PATH)/$(PROJECT_TARGET).out $(BUILD_PATH)/$(PROJECT_TARGET).bin
+	$(OBJCOPY) -Obinary $(BUILD_PATH)/$(PROJECT_TARGET).out $(BUILD_PATH)/$(PROJECT_TARGET).bin
 
 $(BUILD_PATH)/$(PROJECT_TARGET).out: $(BUILD_PATH) $(C_OBJECT_FILES) $(ASM_OBJECT_FILES)
 	$(CC) $(LDFLAGS) $(C_OBJECT_FILES) $(ASM_OBJECT_FILES) -o $@
@@ -95,7 +101,16 @@ install upload: $(BUILD_PATH)/$(PROJECT_TARGET).bin
 erase:
 	$(PROGRAMMER) erase
 
+softdevice: erase $(BUILD_PATH) $(SOFTDEVICE)
+	$(PROGRAMMER) softdevice $(addprefix `pwd`/, $(SOFTDEVICE))
+
+$(BUILD_PATH)/softdevice_uicr.bin: $(NRF51_SOFTDEVICE)
+	$(OBJCOPY) -Iihex -Obinary --only-section .sec3 $< $@
+
+$(BUILD_PATH)/softdevice_main.bin: $(NRF51_SOFTDEVICE)
+	$(OBJCOPY) -Iihex -Obinary --remove-section .sec3 $< $@
+
 clean:
 	rm -rf build *.log
 
-.PHONY: install upload erase clean
+.PHONY: install upload erase softdevice clean

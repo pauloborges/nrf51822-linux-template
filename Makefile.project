@@ -3,6 +3,7 @@
 ###############################################################################
 
 NRF51_SDK_PATH		= /opt/nRF51/SDK_v4.3.0.27417
+NRF51_SOFTDEVICE	= /opt/nRF51/s110_nrf51822_6.0.0-1.alpha_softdevice.hex
 JLINK_PATH			= /opt/JLink_Linux_V474
 
 ###############################################################################
@@ -12,7 +13,7 @@ JLINK_PATH			= /opt/JLink_Linux_V474
 SOC				= NRF51822_QFAA_CA
 SOC_VARIANT		= xxaa
 BOARD			= BOARD_PCA10001
-USE_SOFTDEVICE	= blank
+USE_SOFTDEVICE	= s110
 
 ###############################################################################
 # PROJECT
