@@ -70,6 +70,7 @@ vpath %.s $(ASM_SOURCE_PATHS)
 SOFTDEVICE = $(BUILD_PATH)/softdevice_uicr.bin $(BUILD_PATH)/softdevice_main.bin
 
 export JLINK_PATH
+export BUILD_PATH
 export USE_SOFTDEVICE
 
 # Rules

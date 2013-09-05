@@ -1,0 +1,8 @@
+device nrf51822
+speed 1000
+w4 4001e504 1
+loadbin {uicr} 0x10001000
+loadbin {main} 0
+r
+g
+q

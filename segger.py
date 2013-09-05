@@ -25,74 +25,46 @@ softdevice.add_argument("main")
 
 ###############################################################################
 
-def exec_command_line(command_line, input_data=None):
-	process = subprocess.Popen(command_line,
-								stdin=subprocess.PIPE,
-								stdout=subprocess.PIPE,
-								stderr=subprocess.PIPE,
-								shell=True)
+jlinkexe = "LD_LIBRARY_PATH={path}:$LD_LIBRARY_PATH {path}/JLinkExe {script}"
 
-	stdout, stderr = process.communicate(input_data)
-	return process.returncode, stdout, stderr
+def exec_jlinkexe(script, path=os.environ["BUILD_PATH"]):
+	try:
+		print subprocess.check_output(jlinkexe.format(
+						path=os.environ["JLINK_PATH"],
+						script=os.path.join(path, script)
+						), shell=True)
+	except subprocess.CalledProcessError, e:
+		print e.output
+	return 0
 
-jlinkexe_command_line = ("LD_LIBRARY_PATH={path}:$LD_LIBRARY_PATH "
-					"{path}/JLinkExe".format(path=os.environ["JLINK_PATH"]))
+def read_script_file(script):
+	return open(os.path.join("scripts", script), 'r').read()
 
-def exec_jlinkexe(input_data):
-	status, stdout, stderr = exec_command_line(jlinkexe_command_line,
-												input_data)
-
-	print stdout
-	return status
+def create_tmp_script(name, content):
+	with open(os.path.join(os.environ["BUILD_PATH"], name), 'w') as f:
+		f.write(content)
 
 ###############################################################################
-
-erase_script = """\
-w4 4001e504 2
-w4 4001e50c 1
-w4 4001e514 1
-r
-q
-"""
 
 def erase():
-	return exec_jlinkexe(erase_script)
-
-###############################################################################
-
-flash_script = """\
-device nrf51822
-speed 1000
-w4 4001e504 1
-loadbin {program} {addr}
-r
-g
-q
-"""
+	return exec_jlinkexe("erase.jlink", "scripts")
 
 def flash(program):
 	if os.environ["USE_SOFTDEVICE"] == "blank":
-		addr = 0
+		addr = hex(0)
 	else:
-		addr = 0x00014000
+		addr = hex(0x00014000)
 
-	return exec_jlinkexe(flash_script.format(program=program, addr=addr))
-
-###############################################################################
-
-softdevice_script = """\
-device nrf51822
-speed 1000
-w4 4001e504 1
-loadbin {uicr} 0x10001000
-loadbin {main} 0
-r
-g
-q
-"""
+	script_name = "flash.jlink"
+	content = read_script_file(script_name).format(program=program, addr=addr)
+	create_tmp_script(script_name, content)
+	return exec_jlinkexe(script_name)
 
 def softdevice(uicr, main):
-	return exec_jlinkexe(softdevice_script.format(uicr=uicr, main=main))
+	script_name = "softdevice.jlink"
+	content = read_script_file(script_name).format(uicr=uicr, main=main)
+	create_tmp_script(script_name, content)
+	return exec_jlinkexe(script_name)
 
 ###############################################################################
 
